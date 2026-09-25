@@ -29,9 +29,14 @@ HDMI passthrough or a device's hardware Dolby decoder.
 - [x] Provision a non-root GitHub runner and Android SDK on VPS 195.208.21.202.
 - [x] Add a pinned SDK test host and build Lampa's frontend into bundled assets.
 - [x] Add Android instrumentation tests before checking input behavior.
-- [ ] Run build and emulator tests through GitHub Actions; diagnose real failures.
-- [ ] Review screenshots and test reports and record supported/untested behavior.
-- [ ] Only then plan the custom Cefrium codec build as a separate milestone.
+- [x] Run build and emulator tests through GitHub Actions; diagnose real failures.
+- [x] Review screenshots and test reports and record supported/untested behavior.
+- [x] Only then plan the custom Cefrium codec build as a separate milestone.
+
+Completed input milestone: [run 36123360232](https://github.com/ARST113/lampa-chromium-android/actions/runs/36123360232),
+commit c23f3dfaebac0f1dc045a1759a1da46201bdb470, 2026-09-25. Four tests passed:
+TV and mobile layouts on Android 10 / API 29 and Android 15 / API 35. See
+[validation details](validation.md) and the separate [codec milestone](codec-next.md).
 
 ## Repository and worker
 

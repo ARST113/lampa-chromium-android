@@ -9,7 +9,8 @@ The published 0.9.2 plugin contains Java class version 69 (Java 25), while the
 upstream quickstart recommends JDK 21 and Gradle 8.9. Run 36119841887 reproduced
 `Unsupported class file major version 69` during Gradle plugin instrumentation.
 We compile the same small Groovy resource-generation plugin in an included build
-for JVM 11 using JDK 21. The native Cefrium/Chromium AAR is still the unmodified,
+for JVM 11 using the worker's JDK 25 (also required by the published SDK API
+classes). The native Cefrium/Chromium AAR is still the unmodified,
 checksum-verified prebuilt SDK. This does not rebuild Chromium.
 
 Upstream licenses are included alongside this file.

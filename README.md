@@ -8,6 +8,10 @@ This repository currently hosts a separate test APK (`dev.lampa.cefrium.probe`),
 not a replacement for `ARST113/LAMPA` or its native AndroidJS/services. Native
 codec changes are the next milestone after the input tests pass.
 
+**Validated:** [run 36123360232](https://github.com/ARST113/lampa-chromium-android/actions/runs/36123360232)
+passed all four input scenarios on Android 10 and 15. See the
+[results and limits](docs/validation.md).
+
 ## Run
 
 Open **Actions → Lampa on Cefrium — Android input test → Run workflow → main**.
