@@ -13,5 +13,5 @@ data=base64.b64decode(urllib.request.urlopen(url,timeout=60).read())
 pathlib.Path('/build/lampa-ci/bootstrap/install-build-deps.py').write_bytes(data)
 PY
 python3 /build/lampa-ci/bootstrap/install-build-deps.py --no-prompt --no-arm --no-chromeos-fonts --no-syms
-apt-get install -y ffmpeg
+apt-get install -y ffmpeg nasm
 install -d -o lampa-build -g lampa-build /build/lampa-ci/native-152
