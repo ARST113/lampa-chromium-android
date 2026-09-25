@@ -40,3 +40,4 @@ VPS resources. FFmpeg decoding must not depend on Android Dolby MediaCodec.
   all generated changes are retained in the build artifacts.
 - Platform capability, successful media playback, and decoded PCM evidence are
   distinct results. MIME acceptance alone is never reported as playback success.
+- Patch-series stamp seeded from run 36127826790: 144 applied, 2 intentionally skipped, 0 failed. The subsequent attempt changed no patches (0 applied); its three reverse-check failures came from overlapping upstream patches. Future builds reuse the successfully applied series.

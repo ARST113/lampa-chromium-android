@@ -21,8 +21,16 @@ for directory,key in [('.', 'chromium_revision'),('cef','cefrium_revision'),(bas
 PY
 available=$(df -PB1 . | awk 'NR==2 {print $4}')
 (( available > 70 * 1024 * 1024 * 1024 )) || { echo 'Need at least 70 GiB free before building'; exit 1; }
-# The upstream wrapper enables Android-conditional patches and fails on rejection.
-python3 cef/cefrium_sdk/apply-patches.py 2>&1 | tee "$artifact/patches.log"
+# Apply the ordered patch series once. Some later upstream patches overlap
+# earlier ones, so reverse-checking each individual patch is not idempotent.
+cef_revision=$(git -C cef rev-parse HEAD)
+if [[ -f "$base/.cef-patches" ]]; then
+  [[ $(cat "$base/.cef-patches") == "$cef_revision" ]] || { echo 'CEF patch stamp mismatch'; exit 1; }
+  echo "Reusing the applied patch series at $cef_revision" > "$artifact/patches.log"
+else
+  python3 cef/cefrium_sdk/apply-patches.py 2>&1 | tee "$artifact/patches.log"
+  printf '%s\n' "$cef_revision" > "$base/.cef-patches"
+fi
 # The Android fork ships stale generated C API metadata (including a Chromium
 # 150 VERSION.stamp). Rebuild wrappers and hashes together for this custom AAR;
 # it is not distributed as a binary-compatible desktop CEF replacement.
