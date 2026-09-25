@@ -7,12 +7,14 @@ artifact="$repo/artifacts/ffmpeg"
 mkdir -p "$artifact"
 cd "$src"
 export PATH="$src/third_party/llvm-build/Release+Asserts/bin:/build/lampa-ci/native-152/depot_tools:$PATH"
-if git apply --reverse --check "$repo/native/0001-ffmpeg-dolby.patch" 2>/dev/null; then
-  echo 'Dolby source patch already applied'
-else
-  git apply --check "$repo/native/0001-ffmpeg-dolby.patch"
-  git apply "$repo/native/0001-ffmpeg-dolby.patch"
-fi
+for patch in "$repo"/native/*.patch; do
+  if git apply --reverse --check "$patch" 2>/dev/null; then
+    echo "Already applied: $(basename "$patch")"
+  else
+    git apply --check "$patch"
+    git apply "$patch"
+  fi
+done
 stamp=/build/lampa-ci/native-152/.ffmpeg-software-dolby
 identity=$(cat "$repo/dependencies/native-engine.json" "$repo/native/0001-ffmpeg-dolby.patch" "$0" | sha256sum | cut -d' ' -f1)
 if [[ ! -f "$stamp" || $(cat "$stamp") != "$identity" ]]; then
