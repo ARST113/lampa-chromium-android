@@ -1,0 +1,7 @@
+{
+  "version": "0.9.2",
+  "source_commit": "ac3f25368bc09113c5d46f46089a58e6de6550bb",
+  "repository": "https://codeberg.org/api/packages/cefrium/maven",
+  "sdk_sha256": "364def6e6e0bdfaf597c724796b72825f24530029fc1a9300e7c0791b21c6d81",
+  "checksum_source": "https://codeberg.org/cefrium/cef-android/releases/download/v0.9.2/SHA256SUMS-0.9.2"
+}

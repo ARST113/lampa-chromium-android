@@ -1,6 +1,6 @@
 # Lampa on Cefrium: Android input probe
 
-First milestone: run the real Lampa frontend in the ready-made **Cefrium 0.9.1**
+First milestone: run the real Lampa frontend in the ready-made **Cefrium 0.9.2**
 SDK and verify touch + remote control on Android. GitHub Actions orchestrates the
 build and tests. A dedicated Ubuntu VPS supplies compute, disk and KVM.
 
@@ -19,7 +19,7 @@ Pinned inputs:
 
 | Component | Revision |
 |---|---|
-| Cefrium SDK and Gradle plugin | 0.9.1, Maven Central |
+| Cefrium SDK and Gradle plugin | 0.9.2, the official Codeberg registry |
 | Bundled Chromium | 152.0.7977.82 (Cefrium release) |
 | Lampa frontend | 40743ea5dd962b01706f6f909d5bef1bdf710474 |
 | Gradle | 8.9, SHA256 checked |
@@ -62,7 +62,7 @@ See [the agreed sequence](docs/plan.md).
 
 ## Upstream and notices
 
-- [Cefrium source, LGPL-3.0-or-later](https://codeberg.org/cefrium/cef-android/src/tag/v0.9.1)
+- [Cefrium source, LGPL-3.0-or-later](https://codeberg.org/cefrium/cef-android/src/tag/v0.9.2)
 - [Cefrium release and SDK docs](https://cefrium.com/releases/)
 - [Lampa source and license](https://github.com/ARST113/lampa-source/tree/40743ea5dd962b01706f6f909d5bef1bdf710474)
 

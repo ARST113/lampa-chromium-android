@@ -11,9 +11,6 @@ import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import org.json.JSONObject;
 import org.junit.Test;
-import org.junit.Rule;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
 import org.junit.runner.RunWith;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -26,11 +23,6 @@ import static org.junit.Assert.*;
 @RunWith(AndroidJUnit4.class)
 public class LampaInputTest {
     private MainActivity activity;
-    @Rule public TestWatcher failureScreenshot = new TestWatcher() {
-        @Override protected void failed(Throwable error, Description description) {
-            if (activity != null) try { screenshot("FAILED-" + description.getMethodName()); } catch (Exception ignored) { }
-        }
-    };
 
     private JSONObject query(String expression) throws Exception {
         CountDownLatch done = new CountDownLatch(1);
@@ -104,9 +96,13 @@ public class LampaInputTest {
         intent.putExtra("input_mode", mode);
         try (ActivityScenario<MainActivity> scenario = ActivityScenario.launch(intent)) {
             scenario.onActivity(a -> activity = a);
+            try {
             SystemClock.sleep(4000);
             waitFor("Boolean(window.appready && window.show_app && document.querySelector('.open--settings'))");
             assertTrue("Not Chromium 152: " + value("navigator.userAgent"), value("navigator.userAgent").contains("152."));
+            assertEquals("Lampa navigation setting was not applied", mode.equals("touch") ? "touch" : "controll", value("Lampa.Storage.field('navigation_type')"));
+            assertEquals("Wrong Lampa layout", mode.equals("tv"), query("Lampa.Platform.screen('tv')").getBoolean("value"));
+            assertEquals("Language must be stored as a scalar string", "ru", value("Lampa.Storage.get('language')"));
             screenshot(mode + "-01-lampa");
 
             // The test instruments observation, not navigation or input behavior.
@@ -115,15 +111,14 @@ public class LampaInputTest {
             waitFor("Lampa.Controller.enabled().name === 'settings'");
             assertTrue("A real touchscreen event was not delivered", query("window.__input.touch>0").getBoolean("value"));
             screenshot(mode + "-02-touch-settings");
-            String initial = value("document.querySelector('.settings .selector.focus')?.textContent.trim() || ''");
+            waitFor("Boolean(Navigator.getFocusedElement())");
+            String initial = value("(()=>{window.__probeInitialFocus=Navigator.getFocusedElement();return window.__probeInitialFocus.textContent.trim()})()");
             key(KeyEvent.KEYCODE_DPAD_DOWN);
-            waitFor("Boolean(document.querySelector('.settings .selector.focus'))");
-            String next = value("document.querySelector('.settings .selector.focus')?.textContent.trim() || ''");
-            assertFalse("DPAD_DOWN did not move Lampa focus: " + initial, next.equals(initial));
+            waitFor("Navigator.getFocusedElement() && Navigator.getFocusedElement() !== window.__probeInitialFocus");
             screenshot(mode + "-03-dpad-focus");
             key(KeyEvent.KEYCODE_DPAD_UP);
-            assertEquals("DPAD_UP should restore the first selection", initial,
-                value("document.querySelector('.settings .selector.focus')?.textContent.trim() || ''"));
+            assertTrue("DPAD_UP should restore selection: " + initial,
+                query("Navigator.getFocusedElement() === window.__probeInitialFocus").getBoolean("value"));
             key(KeyEvent.KEYCODE_DPAD_CENTER);
             waitFor("Lampa.Controller.enabled().name === 'settings_component'");
             screenshot(mode + "-04-ok-opened");
@@ -138,6 +133,10 @@ public class LampaInputTest {
             String report = query("({mode:" + JSONObject.quote(mode) + ",ua:navigator.userAgent,platform:Lampa.Platform.get(),controller:Lampa.Controller.enabled().name,input:window.__input,viewport:[innerWidth,innerHeight,devicePixelRatio]})").toString(2);
             try (FileOutputStream out = new FileOutputStream(new File(activity.getExternalFilesDir(null), "evidence/"+mode+"-report.json"))) {
                 out.write(report.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            }
+            } catch (Exception | AssertionError failure) {
+                try { screenshot(mode + "-FAILED"); } catch (Exception captureFailure) { failure.addSuppressed(captureFailure); }
+                throw failure;
             }
         }
     }

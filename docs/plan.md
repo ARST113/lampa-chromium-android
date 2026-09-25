@@ -7,7 +7,7 @@ build and emulator worker. Initial target is Android 10+.
 
 ## Scope and acceptance
 
-Use Cefrium 0.9.1 (Chromium 152.0.7977.82), unmodified native SDK from Maven Central.
+Use Cefrium 0.9.2 (Chromium 152.0.7977.82), unmodified native SDK from the official Codeberg registry.
 Use ARST113/lampa-source at 40743ea5dd962b01706f6f909d5bef1bdf710474.
 Create a separate Android application; do not replace the existing LAMPA app.
 Package built Lampa assets in the APK so loading the UI does not depend on hosting.
@@ -45,5 +45,5 @@ SSH passwords and GitHub credentials are not repository contents.
 
 - https://cefrium.com/quickstart/
 - https://cefrium.com/releases/
-- https://codeberg.org/cefrium/cef-android/src/tag/v0.9.1
+- https://codeberg.org/cefrium/cef-android/src/tag/v0.9.2
 - https://github.com/ARST113/lampa-source/tree/40743ea5dd962b01706f6f909d5bef1bdf710474

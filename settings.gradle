@@ -1,7 +1,15 @@
-pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
+pluginManagement {
+    repositories {
+        google(); mavenCentral(); gradlePluginPortal()
+        maven { url 'https://codeberg.org/api/packages/cefrium/maven'; content { includeGroup 'com.cefrium' } }
+    }
+}
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-    repositories { google(); mavenCentral() }
+    repositories {
+        google(); mavenCentral()
+        maven { url 'https://codeberg.org/api/packages/cefrium/maven'; content { includeGroup 'com.cefrium' } }
+    }
 }
 rootProject.name = 'LampaCefriumProbe'
 include ':app'

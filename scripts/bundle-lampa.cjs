@@ -33,10 +33,10 @@ const crypto = require('crypto');
   html = html.replace(/<script src="http:\/\/www.youtube.com\/iframe_api" async><\/script>/, '');
   html = html.replace('<script src="app.js"></script>', `<script>
     // Test-host defaults. Keep Lampa's actual controllers and input handlers.
-    if (!localStorage.getItem('language')) localStorage.setItem('language', JSON.stringify('ru'));
+    if (!localStorage.getItem('language')) localStorage.setItem('language', 'ru');
     var probeMode = new URLSearchParams(location.search).get('input') || 'tv';
     localStorage.setItem('is_true_mobile', JSON.stringify(probeMode === 'touch'));
-    localStorage.setItem('navigation_type', JSON.stringify(probeMode === 'touch' ? 'touch' : 'controll'));
+    localStorage.setItem('navigation_type', probeMode === 'touch' ? 'touch' : 'controll');
     window.lampa_settings = {socket_use:false,account_use:false,account_sync:false,plugins_use:false,plugins_store:false};
     window.youtube_lazy_load = true;
   </script><script src="app.js"></script>`);
