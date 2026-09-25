@@ -1,0 +1,28 @@
+plugins { id 'com.android.application'; id 'com.cefrium' }
+android {
+    namespace 'dev.lampa.cefrium'
+    compileSdk 35
+    defaultConfig {
+        applicationId 'dev.lampa.cefrium.probe'
+        minSdk 29
+        targetSdk 34
+        versionCode 1
+        versionName '0.1-cefrium-0.9.1'
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+        ndk { abiFilters(project.findProperty('abi') ?: 'x86_64') }
+    }
+    packaging { jniLibs { useLegacyPackaging = true } }
+    androidResources { noCompress 'dat', 'pak', 'bin' }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_11; targetCompatibility JavaVersion.VERSION_11 }
+}
+configurations.configureEach { exclude group: 'com.google.guava', module: 'listenablefuture' }
+dependencies {
+    implementation 'com.cefrium:cefrium-sdk:0.9.1'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'androidx.mediarouter:mediarouter:1.7.0'
+    implementation 'androidx.core:core:1.16.0'
+    implementation 'androidx.browser:browser:1.8.0'
+    androidTestImplementation 'androidx.test:runner:1.6.2'
+    androidTestImplementation 'androidx.test:core:1.6.1'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+}

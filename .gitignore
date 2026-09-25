@@ -1,0 +1,8 @@
+.gradle/
+**/build/
+local.properties
+.cache/
+artifacts/
+app/src/main/assets/lampa/
+*.jks
+*.keystore

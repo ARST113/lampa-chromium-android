@@ -1,0 +1,62 @@
+name: Lampa on Cefrium — Android input test
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: lampa-vps
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    if: github.repository == 'ARST113/lampa-chromium-android' && github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, Linux, X64, lampa]
+    timeout-minutes: 120
+    env:
+      ANDROID_HOME: /opt/lampa-ci/android-sdk
+      ANDROID_SDK_ROOT: /opt/lampa-ci/android-sdk
+      JAVA_HOME: /usr/lib/jvm/java-21-openjdk-amd64
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Worker and source identity
+        run: |
+          mkdir -p artifacts
+          { id; uname -a; free -h; df -h /; git rev-parse HEAD; java -version; node --version; } > artifacts/worker.txt 2>&1
+          for script in scripts/*.sh infra/*.sh; do bash -n "$script"; done
+      - name: Build pinned Lampa frontend
+        run: bash scripts/build-frontend.sh 2>&1 | tee artifacts/frontend.log
+      - name: Build x86_64 APK and instrumentation
+        id: compile
+        run: |
+          bash scripts/gradle.sh :app:assembleDebug :app:assembleDebugAndroidTest -Pabi=x86_64 --stacktrace 2>&1 | tee artifacts/build-x86_64.log
+          cp app/build/outputs/apk/debug/app-debug.apk artifacts/lampa-cefrium-x86_64-debug.apk
+      - name: Test touch and remote input on Android
+        run: bash scripts/emulator-test.sh 2>&1 | tee artifacts/input-tests.log
+      - name: Build ARM64 APK for device testing
+        if: ${{ !cancelled() && steps.compile.outcome == 'success' }}
+        run: |
+          bash scripts/gradle.sh :app:assembleDebug -Pabi=arm64-v8a --stacktrace 2>&1 | tee artifacts/build-arm64.log
+          cp app/build/outputs/apk/debug/app-debug.apk artifacts/lampa-cefrium-arm64-debug.apk
+      - name: Artifact checksums
+        if: always()
+        run: |
+          find artifacts -maxdepth 1 -name '*.apk' -exec sha256sum {} \; > artifacts/SHA256SUMS
+      - name: Upload APKs and test evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: lampa-cefrium-${{ github.run_number }}
+          path: |
+            artifacts/
+            app/build/reports/androidTests/
+            app/build/outputs/androidTest-results/
+          retention-days: 14
+          if-no-files-found: error
