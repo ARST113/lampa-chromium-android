@@ -23,6 +23,7 @@ Pinned inputs:
 | Bundled Chromium | 152.0.7977.82 (Cefrium release) |
 | Lampa frontend | 40743ea5dd962b01706f6f909d5bef1bdf710474 |
 | Gradle | 9.7.1, SHA256 checked |
+| JDK | OpenJDK 25 (SDK classes use class-file version 69) |
 | AGP | 9.4.0 (matches upstream test harness) |
 | Minimum Android | 10 / API 29 |
 | Emulator | Android 15 / API 35, x86_64, KVM |

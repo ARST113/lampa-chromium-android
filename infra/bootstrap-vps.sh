@@ -3,7 +3,7 @@ set -euo pipefail
 [[ $(id -u) == 0 ]] || { echo 'Run once as administrator'; exit 1; }
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
-apt-get install -y ca-certificates curl git unzip zip python3 openjdk-21-jdk-headless nodejs npm \
+apt-get install -y ca-certificates curl git unzip zip python3 openjdk-25-jdk-headless nodejs npm \
   libpulse0 libnss3 libx11-6 libxcb1 libxcomposite1 libxcursor1 libxi6 libxtst6 \
   libxrandr2 libxrender1 libvulkan1 libgl1 libasound2t64
 id lampa-build >/dev/null 2>&1 || useradd --create-home --shell /bin/bash lampa-build
@@ -38,6 +38,6 @@ curl --fail --location --retry 3 -o "$runner" https://github.com/actions/runner/
 printf '%s  %s\n' 70920811a4f8ad4328818682bca5c6469c1c942fab52448868071d0063816613 "$runner" | sha256sum -c -
 tar -xzf "$runner" -C /opt/lampa-ci/runner
 chown -R lampa-build:lampa-build /opt/lampa-ci/runner
-printf 'JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64\nANDROID_HOME=/opt/lampa-ci/android-sdk\nANDROID_SDK_ROOT=/opt/lampa-ci/android-sdk\n' > /opt/lampa-ci/runner/.env
+printf 'JAVA_HOME=/usr/lib/jvm/java-25-openjdk-amd64\nANDROID_HOME=/opt/lampa-ci/android-sdk\nANDROID_SDK_ROOT=/opt/lampa-ci/android-sdk\n' > /opt/lampa-ci/runner/.env
 chown lampa-build:lampa-build /opt/lampa-ci/runner/.env
 echo 'BOOTSTRAP COMPLETE; register runner separately with a short-lived token.'

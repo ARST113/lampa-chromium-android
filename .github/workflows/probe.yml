@@ -21,7 +21,7 @@ jobs:
     env:
       ANDROID_HOME: /opt/lampa-ci/android-sdk
       ANDROID_SDK_ROOT: /opt/lampa-ci/android-sdk
-      JAVA_HOME: /usr/lib/jvm/java-21-openjdk-amd64
+      JAVA_HOME: /usr/lib/jvm/java-25-openjdk-amd64
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
