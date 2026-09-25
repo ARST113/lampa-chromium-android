@@ -26,3 +26,24 @@ dependencies {
     androidTestImplementation 'androidx.test:core:1.6.1'
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'
 }
+
+tasks.register('verifyCefriumSdk') {
+    doLast {
+        def expected = new groovy.json.JsonSlurper().parse(rootProject.file('dependencies/cefrium.json'))
+        def sdk = configurations.debugRuntimeClasspath.resolvedConfiguration.resolvedArtifacts.find {
+            it.moduleVersion.id.group == 'com.cefrium' && it.name == 'cefrium-sdk'
+        }
+        if (sdk == null) throw new GradleException('Cefrium SDK artifact is missing')
+        def digest = java.security.MessageDigest.getInstance('SHA-256')
+        sdk.file.withInputStream { stream ->
+            def checked = new java.security.DigestInputStream(stream, digest)
+            checked.transferTo(java.io.OutputStream.nullOutputStream())
+        }
+        def actual = digest.digest().encodeHex().toString()
+        if (sdk.moduleVersion.id.version != expected.version || actual != expected.sdk_sha256) {
+            throw new GradleException("Cefrium SDK revision/checksum mismatch: ${actual}")
+        }
+        println "Verified Cefrium ${expected.version}: ${actual}"
+    }
+}
+tasks.named('preBuild').configure { dependsOn 'verifyCefriumSdk' }

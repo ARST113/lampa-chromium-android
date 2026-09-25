@@ -12,8 +12,9 @@ git -C "$src" fetch --depth 1 origin "$commit"
 git -C "$src" checkout --detach "$commit"
 test "$(git -C "$src" rev-parse HEAD)" = "$commit"
 cp "$root/scripts/bundle-lampa.cjs" "$src/.lampa-probe-bundle.cjs"
+cp "$root/dependencies/lampa-package-lock.json" "$src/package-lock.json"
 cd "$src"
-npm install --ignore-scripts --no-audit --no-fund
+npm ci --ignore-scripts --no-audit --no-fund
 node .lampa-probe-bundle.cjs "$root/app/src/main/assets/lampa"
 mkdir -p "$root/artifacts"
 cp package-lock.json "$root/artifacts/lampa-package-lock.json"

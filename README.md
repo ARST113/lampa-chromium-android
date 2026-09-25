@@ -27,10 +27,11 @@ Pinned inputs:
 | Minimum Android | 10 / API 29 |
 | Emulator | Android 15 / API 35, x86_64, KVM |
 
-Frontend dependencies are resolved from the pinned upstream package manifest;
-the resolved npm lock is recorded as an artifact. A locked dependency set will
-be checked in after the first successful resolution. This initial probe is not
-a bit-for-bit reproducibility claim.
+Frontend dependencies use the committed npm lock and `npm ci`. The Cefrium AAR
+is checked against the author's published SHA256 before building. Codeberg only
+retains its latest Maven release, so archive the verified SDK before a later
+upstream release removes this coordinate. The worker's Gradle cache persists
+between jobs. This initial probe is not a bit-for-bit reproducibility claim.
 
 ## What is checked
 
