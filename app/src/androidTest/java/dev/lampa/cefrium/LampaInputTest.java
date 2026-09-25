@@ -151,10 +151,21 @@ public class LampaInputTest {
             waitFor("Lampa.Controller.enabled().name === 'settings'");
             key(KeyEvent.KEYCODE_BACK);
             waitFor("!document.body.classList.contains('settings--open')");
+            waitFor("Lampa.Controller.enabled().name === 'head' && Boolean(Navigator.getFocusedElement())");
+            query("(()=>{window.__probeHeadFocus=Navigator.getFocusedElement();return true})()");
+            boolean moveLeft = query("Navigator.canmove('left')").getBoolean("value");
+            assertTrue("The header needs a horizontal neighbour", moveLeft || query("Navigator.canmove('right')").getBoolean("value"));
+            key(moveLeft ? KeyEvent.KEYCODE_DPAD_LEFT : KeyEvent.KEYCODE_DPAD_RIGHT);
+            waitFor("Navigator.getFocusedElement() !== window.__probeHeadFocus");
+            screenshot(mode + "-05-horizontal-focus");
+            key(moveLeft ? KeyEvent.KEYCODE_DPAD_RIGHT : KeyEvent.KEYCODE_DPAD_LEFT);
+            waitFor("Navigator.getFocusedElement() === window.__probeHeadFocus");
+            assertTrue("All arrows and OK must arrive as trusted native key events",
+                query("[37,38,39,40,13].every(code=>window.__input.keys.some(e=>e.code===code && e.trusted))").getBoolean("value"));
             SystemClock.sleep(500);
             tap(settingsButton);
             waitFor("Lampa.Controller.enabled().name === 'settings'");
-            screenshot(mode + "-05-touch-after-remote");
+            screenshot(mode + "-06-touch-after-remote");
             String report = query("({mode:" + JSONObject.quote(mode) + ",ua:navigator.userAgent,platform:Lampa.Platform.get(),controller:Lampa.Controller.enabled().name,input:window.__input,viewport:[innerWidth,innerHeight,devicePixelRatio]})").toString(2);
             try (FileOutputStream out = new FileOutputStream(new File(activity.getExternalFilesDir(null), "evidence/"+mode+"-report.json"))) {
                 out.write(report.getBytes(java.nio.charset.StandardCharsets.UTF_8));
