@@ -15,8 +15,16 @@ for patch in "$repo"/native/*.patch; do
     git apply "$patch"
   fi
 done
+for patch in "$repo"/native/ffmpeg/*.patch; do
+  if git -C third_party/ffmpeg apply --reverse --check "$patch" 2>/dev/null; then
+    echo "Already applied: $(basename "$patch")"
+  else
+    git -C third_party/ffmpeg apply --check "$patch"
+    git -C third_party/ffmpeg apply "$patch"
+  fi
+done
 stamp=/build/lampa-ci/native-152/.ffmpeg-software-dolby
-identity=$(cat "$repo/dependencies/native-engine.json" "$repo"/native/*.patch "$0" | sha256sum | cut -d' ' -f1)
+identity=$(cat "$repo/dependencies/native-engine.json" "$repo"/native/*.patch "$repo"/native/ffmpeg/*.patch "$0" | sha256sum | cut -d' ' -f1)
 if [[ ! -f "$stamp" || $(cat "$stamp") != "$identity" ]]; then
   # FFmpeg configure resolves all decoder dependencies; never hand-edit CONFIG_*.
   for cpu in arm64 x64; do

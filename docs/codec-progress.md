@@ -22,6 +22,10 @@ VPS resources. FFmpeg decoding must not depend on Android Dolby MediaCodec.
   integration are prepared; first native build is ARM64 only.
 - Native build, regression input tests, media results: pending.
 - HDMI passthrough is outside this software-to-PCM variant.
+- FFmpeg ARM64 and x64 decoder compilation succeeded. GN generation rejected
+  the optional GPL AArch64 AC3 DSP implementation. Gate its objects and init
+  hook on CONFIG_GPL; the LGPL build keeps the generic AC3 DSP implementation
+  and both software decoders. Keep the upstream license check enabled.
 
 ## Decisions
 
