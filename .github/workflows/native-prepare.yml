@@ -1,0 +1,36 @@
+name: Prepare pinned Chromium for AC3/EAC3
+on:
+  workflow_dispatch:
+  push:
+    branches: [codecs/ac3-eac3]
+    paths:
+      - .github/workflows/native-prepare.yml
+      - dependencies/native-engine.json
+      - scripts/native-prepare.sh
+permissions:
+  contents: read
+concurrency:
+  group: lampa-vps
+  cancel-in-progress: false
+jobs:
+  prepare:
+    if: github.repository == 'ARST113/lampa-chromium-android' && (github.ref == 'refs/heads/codecs/ac3-eac3' || github.ref == 'refs/heads/main')
+    runs-on: [self-hosted, Linux, X64, lampa]
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Fetch pinned engine and dependencies
+        shell: bash
+        run: |
+          mkdir -p artifacts/native
+          bash -n scripts/native-prepare.sh
+          bash scripts/native-prepare.sh 2>&1 | tee artifacts/native/prepare.log
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: native-prepare-${{ github.run_number }}
+          path: artifacts/native/
+          retention-days: 14
+          if-no-files-found: error

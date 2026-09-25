@@ -1,0 +1,7 @@
+{
+  "chromium_tag": "152.0.7977.82",
+  "chromium_revision": "d04cdb24d67b081f6cf80200ffc5233f44b61109",
+  "cefrium_tag": "v0.9.2",
+  "cefrium_revision": "ac3f25368bc09113c5d46f46089a58e6de6550bb",
+  "depot_tools_revision": "56b8271b3f10e046bffac2cfc44b2f81162cd97e"
+}
