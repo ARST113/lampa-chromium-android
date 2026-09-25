@@ -20,7 +20,7 @@ emulator -avd lampa-probe -no-window -no-audio -no-boot-anim -no-snapshot -wipe-
 emulator_pid=$!
 cleanup() {
   adb logcat -d > artifacts/logcat.txt 2>&1 || true
-  adb pull /sdcard/Android/data/dev.lampa.cefrium.probe/files/evidence artifacts/evidence >/dev/null 2>&1 || true
+  adb pull /sdcard/Download/lampa-probe-evidence artifacts/evidence >/dev/null 2>&1 || true
   adb emu kill >/dev/null 2>&1 || true
   kill "$emulator_pid" 2>/dev/null || true
   wait "$emulator_pid" 2>/dev/null || true

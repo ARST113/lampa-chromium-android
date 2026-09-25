@@ -3,6 +3,8 @@ package dev.lampa.cefrium;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.SystemClock;
+import android.os.ParcelFileDescriptor;
+import android.util.Log;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -65,6 +67,18 @@ public class LampaInputTest {
             assertTrue(bitmap.compress(Bitmap.CompressFormat.PNG, 100, out));
         }
         bitmap.recycle();
+        exportEvidence(name + ".png");
+    }
+
+    private void exportEvidence(String name) throws Exception {
+        // UTP uninstalls the app after the suite. Preserve evidence outside app data.
+        File source = new File(activity.getExternalFilesDir(null), "evidence/" + name);
+        String command = "mkdir -p /sdcard/Download/lampa-probe-evidence && cp '"
+            + source.getAbsolutePath() + "' '/sdcard/Download/lampa-probe-evidence/" + name + "'";
+        try (ParcelFileDescriptor fd = InstrumentationRegistry.getInstrumentation().getUiAutomation().executeShellCommand(command);
+             java.io.InputStream in = new ParcelFileDescriptor.AutoCloseInputStream(fd)) {
+            while (in.read() != -1) { /* Wait for the shell copy before teardown. */ }
+        }
     }
 
     private void tap(String selector) throws Exception {
@@ -75,6 +89,8 @@ public class LampaInputTest {
         InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> activity.browser.getSurfaceContainer().getLocationOnScreen(offset));
         float x = (float)point.getDouble("x") + offset[0];
         float y = (float)point.getDouble("y") + offset[1];
+        Log.i("LampaProbe", "Tap " + selector + " page=" + point + " screen=" + x + "," + y
+            + " viewport=" + value("JSON.stringify({w:innerWidth,h:innerHeight,dpr:devicePixelRatio,scale:visualViewport.scale})"));
         long time = SystemClock.uptimeMillis();
         for (int action : new int[]{MotionEvent.ACTION_DOWN, MotionEvent.ACTION_UP}) {
             MotionEvent event = MotionEvent.obtain(time, SystemClock.uptimeMillis(), action, x, y, 0);
@@ -107,7 +123,8 @@ public class LampaInputTest {
 
             // The test instruments observation, not navigation or input behavior.
             query("(()=>{window.__input={touch:0,keys:[]};document.addEventListener('touchstart',e=>{if(e.isTrusted)window.__input.touch++},true);document.addEventListener('keydown',e=>window.__input.keys.push({code:e.keyCode,trusted:e.isTrusted}),true);return true})()");
-            tap(".open--settings");
+            String settingsButton = mode.equals("touch") ? ".navigation-bar__item[data-action=settings]" : ".open--settings";
+            tap(settingsButton);
             waitFor("Lampa.Controller.enabled().name === 'settings'");
             assertTrue("A real touchscreen event was not delivered", query("window.__input.touch>0").getBoolean("value"));
             screenshot(mode + "-02-touch-settings");
@@ -127,13 +144,14 @@ public class LampaInputTest {
             key(KeyEvent.KEYCODE_BACK);
             waitFor("!document.body.classList.contains('settings--open')");
             SystemClock.sleep(500);
-            tap(".open--settings");
+            tap(settingsButton);
             waitFor("Lampa.Controller.enabled().name === 'settings'");
             screenshot(mode + "-05-touch-after-remote");
             String report = query("({mode:" + JSONObject.quote(mode) + ",ua:navigator.userAgent,platform:Lampa.Platform.get(),controller:Lampa.Controller.enabled().name,input:window.__input,viewport:[innerWidth,innerHeight,devicePixelRatio]})").toString(2);
             try (FileOutputStream out = new FileOutputStream(new File(activity.getExternalFilesDir(null), "evidence/"+mode+"-report.json"))) {
                 out.write(report.getBytes(java.nio.charset.StandardCharsets.UTF_8));
             }
+            exportEvidence(mode + "-report.json");
             } catch (Exception | AssertionError failure) {
                 try { screenshot(mode + "-FAILED"); } catch (Exception captureFailure) { failure.addSuppressed(captureFailure); }
                 throw failure;
