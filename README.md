@@ -33,6 +33,10 @@ retains its latest Maven release, so archive the verified SDK before a later
 upstream release removes this coordinate. The worker's Gradle cache persists
 between jobs. This initial probe is not a bit-for-bit reproducibility claim.
 
+The SDK is prebuilt. Its small Gradle resource plugin is compiled from the
+unmodified v0.9.2 source because the published plugin requires Java 25; see
+[the recorded compatibility fix](build-logic/cefrium-plugin/UPSTREAM.md).
+
 ## What is checked
 
 - The bundled Lampa UI loads in Chromium 152.
