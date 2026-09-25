@@ -59,10 +59,16 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Check ffmpeg and ffprobe
+      - name: Install ffmpeg (нужен scripts/generate-media.sh)
         run: |
-          ffmpeg -version | head -1
-          ffprobe -version | head -1
+          # Стандартный образ ubuntu-latest идёт без ffmpeg/ffprobe — на self-hosted VPS они были.
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          # Без `| head -1`: при pipefail (включён в run: по умолчанию) SIGPIPE валит шаг.
+          ffmpeg -version > /tmp/ffmpeg-version.txt
+          ffprobe -version > /tmp/ffprobe-version.txt
+          sed -n 1p /tmp/ffmpeg-version.txt
+          sed -n 1p /tmp/ffprobe-version.txt
 
       - name: Accept Android SDK licenses and install compile SDK
         run: |
@@ -98,6 +104,7 @@ jobs:
       - name: Report build environment
         if: always()
         run: |
+          mkdir -p artifacts
           {
             echo "runner: $RUNNER_NAME ($RUNNER_OS)"
             echo "java: $(java -version 2>&1 | head -1)"
