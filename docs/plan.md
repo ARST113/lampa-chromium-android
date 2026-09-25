@@ -26,9 +26,9 @@ HDMI passthrough or a device's hardware Dolby decoder.
 
 ## Implementation sequence
 
-- [ ] Provision a non-root GitHub runner and Android SDK on VPS 195.208.21.202.
-- [ ] Add a pinned SDK test host and build Lampa's frontend into bundled assets.
-- [ ] Add Android instrumentation tests before checking input behavior.
+- [x] Provision a non-root GitHub runner and Android SDK on VPS 195.208.21.202.
+- [x] Add a pinned SDK test host and build Lampa's frontend into bundled assets.
+- [x] Add Android instrumentation tests before checking input behavior.
 - [ ] Run build and emulator tests through GitHub Actions; diagnose real failures.
 - [ ] Review screenshots and test reports and record supported/untested behavior.
 - [ ] Only then plan the custom Cefrium codec build as a separate milestone.

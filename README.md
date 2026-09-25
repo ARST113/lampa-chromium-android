@@ -26,7 +26,7 @@ Pinned inputs:
 | JDK | OpenJDK 25 (SDK classes use class-file version 69) |
 | AGP | 9.4.0 (matches upstream test harness) |
 | Minimum Android | 10 / API 29 |
-| Emulator | Android 15 / API 35, x86_64, KVM |
+| Emulators | Android 10 / API 29 and Android 15 / API 35, x86_64, KVM |
 
 Frontend dependencies use the committed npm lock and `npm ci`. The Cefrium AAR
 is checked against the author's published SHA256 before building. Codeberg only
@@ -42,19 +42,27 @@ unmodified v0.9.2 source because the published plugin requires Java 25; see
 
 - The bundled Lampa UI loads in Chromium 152.
 - Touch opens its real settings panel.
-- Android D-pad Down/Up move and restore its real focused item.
+- Android D-pad Down/Up move and restore the settings selection.
+- D-pad Left/Right move and restore the header selection.
 - D-pad OK opens a section; Back returns and closes settings.
 - Touch still works after remote input.
-- Both TV and mobile Lampa input modes execute this sequence.
+- Both TV and mobile Lampa input modes execute this sequence at 1280×720.
 
 Tests observe the page through Cefrium's query bridge. They do not fake Lampa's
 controllers, dispatch JavaScript clicks or replace its UI with a sample page.
 The host defaults to Russian and disables account sync, plugin auto-loading and
 socket sync for this isolated test. Catalogue networking remains enabled.
 
+Fresh emulators have the Android fullscreen tutorial pre-confirmed so its system
+window cannot consume test input. Screenshots and JSON evidence are copied to a
+shared test directory before UTP uninstalls the APK. Each Android version gets
+its own console port and evidence directory.
+
 The ready SDK's AC3/EAC3 capability, HDMI passthrough, physical remote layouts,
 the existing native LAMPA bridge and production signing are **not** validated by
-this input test. Debug APKs are intended for testing.
+this input test. Portrait orientation, text input, gesture scrolling and playback
+are separate checks. ARM64 APKs are compiled; these emulator tests execute the
+x86_64 APK. Debug APKs are intended for testing.
 
 ## Worker
 

@@ -73,11 +73,15 @@ public class LampaInputTest {
     private void exportEvidence(String name) throws Exception {
         // UTP uninstalls the app after the suite. Preserve evidence outside app data.
         File source = new File(activity.getExternalFilesDir(null), "evidence/" + name);
+        String destination = "/sdcard/Download/lampa-probe-evidence/" + name;
+        assertTrue("Empty source evidence: " + source, source.length() > 0);
         shell("mkdir -p /sdcard/Download/lampa-probe-evidence");
-        shell("cp " + source.getAbsolutePath() + " /sdcard/Download/lampa-probe-evidence/" + name);
+        shell("cp " + source.getAbsolutePath() + " " + destination);
+        assertEquals("Evidence export size mismatch: " + name,
+            Long.toString(source.length()), shell("stat -c %s " + destination).trim());
     }
 
-    private void shell(String command) throws Exception {
+    private String shell(String command) throws Exception {
         // UiAutomation runs argv directly; shell operators and quotes are not parsed.
         try (ParcelFileDescriptor fd = InstrumentationRegistry.getInstrumentation().getUiAutomation().executeShellCommand(command);
              java.io.InputStream in = new ParcelFileDescriptor.AutoCloseInputStream(fd)) {
@@ -85,7 +89,7 @@ public class LampaInputTest {
             byte[] buffer = new byte[4096];
             int count;
             while ((count = in.read(buffer)) != -1) result.write(buffer, 0, count);
-            assertEquals("Evidence shell command failed: " + command, "", result.toString("UTF-8"));
+            return result.toString("UTF-8");
         }
     }
 
@@ -153,8 +157,8 @@ public class LampaInputTest {
             waitFor("!document.body.classList.contains('settings--open')");
             waitFor("Lampa.Controller.enabled().name === 'head' && Boolean(Navigator.getFocusedElement())");
             query("(()=>{window.__probeHeadFocus=Navigator.getFocusedElement();return true})()");
-            boolean moveLeft = query("Navigator.canmove('left')").getBoolean("value");
-            assertTrue("The header needs a horizontal neighbour", moveLeft || query("Navigator.canmove('right')").getBoolean("value"));
+            boolean moveLeft = query("Boolean(Navigator.canmove('left'))").getBoolean("value");
+            assertTrue("The header needs a horizontal neighbour", moveLeft || query("Boolean(Navigator.canmove('right'))").getBoolean("value"));
             key(moveLeft ? KeyEvent.KEYCODE_DPAD_LEFT : KeyEvent.KEYCODE_DPAD_RIGHT);
             waitFor("Navigator.getFocusedElement() !== window.__probeHeadFocus");
             screenshot(mode + "-05-horizontal-focus");

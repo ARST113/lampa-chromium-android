@@ -11,6 +11,8 @@ case "$api" in 29) port=5556 ;; 35) port=5554 ;; *) echo 'Supported test APIs: 2
 export ANDROID_SERIAL="emulator-$port"
 evidence_dir="artifacts/android-$api"
 mkdir -p "$evidence_dir" "$ANDROID_AVD_HOME"
+# Generated reports from the previous API must never be attributed to this one.
+rm -rf -- app/build/outputs/androidTest-results app/build/reports/androidTests
 emulator -accel-check > "$evidence_dir/kvm.txt" 2>&1
 if adb devices | grep -q "^$ANDROID_SERIAL[[:space:]]"; then
   echo "Port $port already belongs to an emulator; refusing to replace it." >&2
@@ -23,7 +25,9 @@ emulator -avd "lampa-probe-$api" -no-window -no-audio -no-boot-anim -no-snapshot
 emulator_pid=$!
 cleanup() {
   adb logcat -d > "$evidence_dir/logcat.txt" 2>&1 || true
-  adb pull /sdcard/Download/lampa-probe-evidence "$evidence_dir/evidence" >/dev/null 2>&1 || true
+  if [[ ! -d "$evidence_dir/evidence" ]]; then
+    adb pull /sdcard/Download/lampa-probe-evidence "$evidence_dir/evidence" >/dev/null 2>&1 || true
+  fi
   cp -a app/build/outputs/androidTest-results "$evidence_dir/junit" 2>/dev/null || true
   cp -a app/build/reports/androidTests "$evidence_dir/reports" 2>/dev/null || true
   adb emu kill >/dev/null 2>&1 || true
@@ -52,3 +56,9 @@ adb shell wm size 1280x720
 adb shell getprop > "$evidence_dir/android-properties.txt"
 adb logcat -c
 bash scripts/gradle.sh :app:connectedDebugAndroidTest -Pabi=x86_64 --stacktrace
+adb pull /sdcard/Download/lampa-probe-evidence "$evidence_dir/evidence"
+for mode in tv touch; do
+  for name in report.json 01-lampa.png 02-touch-settings.png 03-dpad-focus.png 04-ok-opened.png 05-horizontal-focus.png 06-touch-after-remote.png; do
+    [[ -s "$evidence_dir/evidence/$mode-$name" ]] || { echo "Missing evidence: $mode-$name"; exit 1; }
+  done
+done
