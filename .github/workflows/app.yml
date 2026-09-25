@@ -37,7 +37,9 @@ jobs:
       ANDROID_HOME: /usr/local/lib/android/sdk
       ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
       # scripts/gradle.sh по умолчанию пишет в /opt/lampa-ci/tools — там нет прав.
-      LAMPA_TOOLS: ${{ runner.temp }}/lampa-tools
+      # Берём каталог внутри рабочей копии: контекст github доступен на уровне job,
+      # а runner.temp — нет (из-за него workflow не парсился).
+      LAMPA_TOOLS: ${{ github.workspace }}/.lampa-tools
     defaults:
       run:
         shell: bash
