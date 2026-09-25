@@ -5,7 +5,8 @@ import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
 import android.os.ParcelFileDescriptor;
 import android.os.SystemClock;
-import android.view.KeyEvent;
+import android.view.InputDevice;
+import android.view.MotionEvent;
 import androidx.test.core.app.ActivityScenario;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
@@ -67,8 +68,19 @@ public class CodecPlaybackTest {
             long deadline = SystemClock.uptimeMillis() + 60000;
             while (!query("Boolean(window.__codecReady)").optBoolean("value") && SystemClock.uptimeMillis() < deadline) SystemClock.sleep(500);
             assertTrue("Codec page did not load", query("Boolean(window.__codecReady)").optBoolean("value"));
-            query("document.querySelector('#run').focus() || true");
-            InstrumentationRegistry.getInstrumentation().sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER);
+            JSONObject point = query("(()=>{const r=document.querySelector('#run').getBoundingClientRect();return {x:(r.x+r.width/2)*devicePixelRatio,y:(r.y+r.height/2)*devicePixelRatio}})()").getJSONObject("value");
+            int[] offset = new int[2];
+            InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> activity.browser.getSurfaceContainer().getLocationOnScreen(offset));
+            long downTime = SystemClock.uptimeMillis();
+            for (int action : new int[]{MotionEvent.ACTION_DOWN, MotionEvent.ACTION_UP}) {
+                MotionEvent event = MotionEvent.obtain(downTime, SystemClock.uptimeMillis(), action,
+                    (float)point.getDouble("x") + offset[0], (float)point.getDouble("y") + offset[1], 0);
+                event.setSource(InputDevice.SOURCE_TOUCHSCREEN);
+                InstrumentationRegistry.getInstrumentation().sendPointerSync(event);
+                event.recycle(); SystemClock.sleep(150);
+            }
+            SystemClock.sleep(500);
+            assertTrue("A real touch must start the media probe", query("Boolean(window.__codecResults)").optBoolean("value"));
             deadline = SystemClock.uptimeMillis() + 180000;
             while (!query("Boolean(window.__codecResults && window.__codecResults.done)").optBoolean("value") && SystemClock.uptimeMillis() < deadline) SystemClock.sleep(1000);
             JSONObject report = query("window.__codecResults || {}").getJSONObject("value");
