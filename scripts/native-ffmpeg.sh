@@ -16,7 +16,7 @@ for patch in "$repo"/native/*.patch; do
   fi
 done
 stamp=/build/lampa-ci/native-152/.ffmpeg-software-dolby
-identity=$(cat "$repo/dependencies/native-engine.json" "$repo/native/0001-ffmpeg-dolby.patch" "$0" | sha256sum | cut -d' ' -f1)
+identity=$(cat "$repo/dependencies/native-engine.json" "$repo"/native/*.patch "$0" | sha256sum | cut -d' ' -f1)
 if [[ ! -f "$stamp" || $(cat "$stamp") != "$identity" ]]; then
   # FFmpeg configure resolves all decoder dependencies; never hand-edit CONFIG_*.
   for cpu in arm64 x64; do

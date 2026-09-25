@@ -1,0 +1,11 @@
+diff --git a/media/ffmpeg/scripts/build_ffmpeg.py b/media/ffmpeg/scripts/build_ffmpeg.py
+--- a/media/ffmpeg/scripts/build_ffmpeg.py
++++ b/media/ffmpeg/scripts/build_ffmpeg.py
+@@ -169,6 +169,7 @@ class AndroidApiLevels:
+         # target OS.
+         with open(os.path.join(tmp_dir, 'args.gn'), 'w') as args_gn_file:
+             args_gn_file.write('target_os = "android"\n')
++            args_gn_file.write('clang_use_chrome_plugins = false\n')
+             print('Created ' + os.path.realpath(args_gn_file.name))
+ 
+         # Ask GN to generate build files.
