@@ -4,5 +4,6 @@ local.properties
 .cache/
 artifacts/
 app/src/main/assets/lampa/
+app/src/main/assets/codecs/media/
 *.jks
 *.keystore

@@ -20,7 +20,8 @@ public final class MainActivity extends Activity {
         browser.setOnRenderProcessTerminatedListener((status, error) -> Log.e("LampaProbe", "Renderer terminated: " + status + "/" + error));
         setContentView(browser.getSurfaceContainer());
         String mode = "touch".equals(getIntent().getStringExtra("input_mode")) ? "touch" : "tv";
-        browser.loadUrl("file:///android_asset/lampa/index.html?input=" + mode);
+        browser.loadUrl(getIntent().getBooleanExtra("codec_probe", false)
+            ? "file:///android_asset/codecs/index.html" : "file:///android_asset/lampa/index.html?input=" + mode);
     }
 
     @Override public void onBackPressed() {

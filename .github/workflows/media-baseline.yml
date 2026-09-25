@@ -1,0 +1,44 @@
+name: Media baseline on the published Cefrium SDK
+on:
+  workflow_dispatch:
+  push:
+    branches: [codecs/ac3-eac3]
+    paths:
+      - .github/workflows/media-baseline.yml
+      - app/src/androidTest/java/dev/lampa/cefrium/CodecPlaybackTest.java
+      - app/src/main/assets/codecs/**
+      - scripts/generate-media.sh
+permissions:
+  contents: read
+concurrency:
+  group: lampa-vps
+  cancel-in-progress: false
+jobs:
+  baseline:
+    if: github.repository == 'ARST113/lampa-chromium-android' && (github.ref == 'refs/heads/codecs/ac3-eac3' || github.ref == 'refs/heads/main')
+    runs-on: [self-hosted, Linux, X64, lampa]
+    timeout-minutes: 90
+    env:
+      JAVA_HOME: /usr/lib/jvm/java-25-openjdk-amd64
+      ANDROID_HOME: /opt/lampa-ci/android-sdk
+      ANDROID_SDK_ROOT: /opt/lampa-ci/android-sdk
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Generate known audio and video signals
+        shell: bash
+        run: bash scripts/generate-media.sh
+      - name: Build the current SDK host
+        shell: bash
+        run: bash scripts/gradle.sh :app:assembleDebug :app:assembleDebugAndroidTest -Pabi=x86_64
+      - name: Measure baseline media support (Dolby assertions should fail before engine change)
+        shell: bash
+        run: LAMPA_TEST_SUITE=media LAMPA_ANDROID_API=35 bash scripts/emulator-test.sh -Pandroid.testInstrumentationRunnerArguments.class=dev.lampa.cefrium.CodecPlaybackTest
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: media-baseline-${{ github.run_number }}
+          path: artifacts/
+          retention-days: 14
+          if-no-files-found: error
