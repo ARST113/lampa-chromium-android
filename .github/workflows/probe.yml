@@ -10,48 +10,110 @@ defaults:
     shell: bash
 
 concurrency:
-  group: lampa-vps
+  # Отдельная группа: тесты больше не делят очередь с native-* сборками движка.
+  group: lampa-probe
   cancel-in-progress: false
 
 jobs:
   probe:
     if: github.repository == 'ARST113/lampa-chromium-android' && github.ref == 'refs/heads/main'
-    runs-on: [self-hosted, Linux, X64, lampa]
+    # Стандартный GitHub-раннер вместо [self-hosted, Linux, X64, lampa].
+    # ubuntu-latest даёт /dev/kvm, поэтому AVD с аппаратным ускорением работает и здесь.
+    runs-on: ubuntu-latest
     timeout-minutes: 120
     env:
-      ANDROID_HOME: /opt/lampa-ci/android-sdk
-      ANDROID_SDK_ROOT: /opt/lampa-ci/android-sdk
-      JAVA_HOME: /usr/lib/jvm/java-25-openjdk-amd64
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+      ANDROID_AVD_HOME: ${{ github.workspace }}/.avd
+      # scripts/gradle.sh по умолчанию пишет в /opt/lampa-ci/tools — там нет прав.
+      LAMPA_TOOLS: ${{ github.workspace }}/.lampa-tools
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install ffmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+
+      - name: Free disk space
+        run: |
+          df -h /
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android/sdk/ndk /opt/ghc /usr/local/share/boost || true
+          df -h /
+
+      - name: Enable KVM for the emulator
+        run: |
+          ls -l /dev/kvm || true
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          sudo chmod 666 /dev/kvm || true
+          ls -l /dev/kvm
+          test -r /dev/kvm -a -w /dev/kvm && echo 'KVM доступен'
+
+      - name: Install emulator and system images
+        run: |
+          SDKMANAGER="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+          test -x "$SDKMANAGER" || { echo "sdkmanager не найден в $ANDROID_SDK_ROOT" >&2; ls -la "$ANDROID_SDK_ROOT" >&2; exit 1; }
+          yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
+          "$SDKMANAGER" --install \
+            "platform-tools" \
+            "emulator" \
+            "platforms;android-29" \
+            "platforms;android-35" \
+            "system-images;android-29;google_apis;x86_64" \
+            "system-images;android-35;google_apis;x86_64"
+          "$ANDROID_SDK_ROOT/emulator/emulator" -version | sed -n 1p
+          "$ANDROID_SDK_ROOT/emulator/emulator" -accel-check || true
+
       - name: Worker and source identity
         run: |
           mkdir -p artifacts
           { id; uname -a; free -h; df -h /; git rev-parse HEAD; java -version; node --version; } > artifacts/worker.txt 2>&1
           for script in scripts/*.sh infra/*.sh; do bash -n "$script"; done
+
       - name: Build pinned Lampa frontend
         run: bash scripts/build-frontend.sh 2>&1 | tee artifacts/frontend.log
+
       - name: Build x86_64 APK and instrumentation
         id: compile
         run: |
           bash scripts/gradle.sh :app:assembleDebug :app:assembleDebugAndroidTest -Pabi=x86_64 --stacktrace 2>&1 | tee artifacts/build-x86_64.log
           cp app/build/outputs/apk/debug/app-debug.apk artifacts/lampa-cefrium-x86_64-debug.apk
+
       - name: Test touch and remote input on Android 15
+        if: ${{ !cancelled() && steps.compile.outcome == 'success' }}
         run: LAMPA_ANDROID_API=35 bash scripts/emulator-test.sh 2>&1 | tee artifacts/input-tests-35.log
+
       - name: Test touch and remote input on Android 10
         if: ${{ !cancelled() && steps.compile.outcome == 'success' }}
         run: LAMPA_ANDROID_API=29 bash scripts/emulator-test.sh 2>&1 | tee artifacts/input-tests-29.log
+
       - name: Build ARM64 APK for device testing
         if: ${{ !cancelled() && steps.compile.outcome == 'success' }}
         run: |
           bash scripts/gradle.sh :app:assembleDebug -Pabi=arm64-v8a --stacktrace 2>&1 | tee artifacts/build-arm64.log
           cp app/build/outputs/apk/debug/app-debug.apk artifacts/lampa-cefrium-arm64-debug.apk
+
       - name: Artifact checksums
         if: always()
         run: |
+          mkdir -p artifacts
           find artifacts -maxdepth 1 -name '*.apk' -exec sha256sum {} \; > artifacts/SHA256SUMS
+
       - name: Upload APKs and test evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -59,7 +121,6 @@ jobs:
           name: lampa-cefrium-${{ github.run_number }}
           path: |
             artifacts/
-            app/build/reports/androidTests/
-            app/build/outputs/androidTest-results/
+            app/build/outputs/androidTest-results
           retention-days: 14
-          if-no-files-found: error
+          if-no-files-found: warn
