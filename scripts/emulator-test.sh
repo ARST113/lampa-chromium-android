@@ -4,7 +4,7 @@ root=$(cd "$(dirname "$0")/.." && pwd)
 cd "$root"
 export ANDROID_HOME=${ANDROID_HOME:-/opt/lampa-ci/android-sdk}
 export ANDROID_SDK_ROOT="$ANDROID_HOME"
-export ANDROID_AVD_HOME=/build/lampa-ci/avd
+export ANDROID_AVD_HOME=${ANDROID_AVD_HOME:-/build/lampa-ci/avd}   # путь self-hosted VPS; на GitHub-раннере задаётся переменной окружения
 export PATH="$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
 api=${LAMPA_ANDROID_API:-35}
 case "$api" in 29) port=5556 ;; 35) port=5554 ;; *) echo 'Supported test APIs: 29, 35'; exit 1 ;; esac
