@@ -73,11 +73,19 @@ public class LampaInputTest {
     private void exportEvidence(String name) throws Exception {
         // UTP uninstalls the app after the suite. Preserve evidence outside app data.
         File source = new File(activity.getExternalFilesDir(null), "evidence/" + name);
-        String command = "mkdir -p /sdcard/Download/lampa-probe-evidence && cp '"
-            + source.getAbsolutePath() + "' '/sdcard/Download/lampa-probe-evidence/" + name + "'";
+        shell("mkdir -p /sdcard/Download/lampa-probe-evidence");
+        shell("cp " + source.getAbsolutePath() + " /sdcard/Download/lampa-probe-evidence/" + name);
+    }
+
+    private void shell(String command) throws Exception {
+        // UiAutomation runs argv directly; shell operators and quotes are not parsed.
         try (ParcelFileDescriptor fd = InstrumentationRegistry.getInstrumentation().getUiAutomation().executeShellCommand(command);
              java.io.InputStream in = new ParcelFileDescriptor.AutoCloseInputStream(fd)) {
-            while (in.read() != -1) { /* Wait for the shell copy before teardown. */ }
+            java.io.ByteArrayOutputStream result = new java.io.ByteArrayOutputStream();
+            byte[] buffer = new byte[4096];
+            int count;
+            while ((count = in.read(buffer)) != -1) result.write(buffer, 0, count);
+            assertEquals("Evidence shell command failed: " + command, "", result.toString("UTF-8"));
         }
     }
 

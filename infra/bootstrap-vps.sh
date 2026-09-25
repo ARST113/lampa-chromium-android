@@ -32,7 +32,8 @@ PY
 chown -R lampa-build:lampa-build /opt/lampa-ci/android-sdk /opt/lampa-ci/tools
 runuser -u lampa-build -- bash -c 'yes | /opt/lampa-ci/android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=/opt/lampa-ci/android-sdk --licenses >/dev/null'
 runuser -u lampa-build -- /opt/lampa-ci/android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=/opt/lampa-ci/android-sdk \
-  'platform-tools' 'platforms;android-37' 'build-tools;37.0.0' 'emulator' 'system-images;android-35;google_apis;x86_64'
+  'platform-tools' 'platforms;android-37' 'build-tools;37.0.0' 'emulator' \
+  'system-images;android-35;google_apis;x86_64' 'system-images;android-29;google_apis;x86_64'
 runner=/opt/lampa-ci/tools/actions-runner-linux-x64-2.337.0.tar.gz
 curl --fail --location --retry 3 -o "$runner" https://github.com/actions/runner/releases/download/v2.337.0/actions-runner-linux-x64-2.337.0.tar.gz
 printf '%s  %s\n' 70920811a4f8ad4328818682bca5c6469c1c942fab52448868071d0063816613 "$runner" | sha256sum -c -
