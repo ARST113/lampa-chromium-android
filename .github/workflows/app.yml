@@ -21,17 +21,23 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: lampa-vps
+  # Отдельная группа: сборка APK больше не делит очередь с native-* сборками движка.
+  group: lampa-app
   cancel-in-progress: false
 jobs:
   app:
     if: github.repository == 'ARST113/lampa-chromium-android' && github.ref == 'refs/heads/main'
-    runs-on: [self-hosted, Linux, X64, lampa]
+    # Стандартный GitHub-раннер вместо [self-hosted, Linux, X64, lampa].
+    # Этой сборке не нужны 40 ГБ и сутки, как сборке движка: она скачивает готовый
+    # runtime-AAR из dependencies/runtime.json и собирает только APK.
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
-      JAVA_HOME: /usr/lib/jvm/java-25-openjdk-amd64
-      ANDROID_HOME: /opt/lampa-ci/android-sdk
-      ANDROID_SDK_ROOT: /opt/lampa-ci/android-sdk
+      # Пути стандартного образа ubuntu-latest, а не /opt/lampa-ci self-hosted машины.
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+      # scripts/gradle.sh по умолчанию пишет в /opt/lampa-ci/tools — там нет прав.
+      LAMPA_TOOLS: ${{ runner.temp }}/lampa-tools
     defaults:
       run:
         shell: bash
@@ -39,10 +45,67 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Check ffmpeg and ffprobe
+        run: |
+          ffmpeg -version | head -1
+          ffprobe -version | head -1
+
+      - name: Accept Android SDK licenses and install compile SDK
+        run: |
+          SDKMANAGER="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+          if [[ ! -x "$SDKMANAGER" ]]; then
+            echo "sdkmanager не найден в $ANDROID_SDK_ROOT" >&2
+            ls -la "$ANDROID_SDK_ROOT" >&2 || true
+            exit 1
+          fi
+          yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
+          # app/build.gradle объявляет compileSdk 37; если пакета ещё нет в SDK,
+          # AGP скачает его сам — лицензии выше уже приняты.
+          "$SDKMANAGER" --install "platform-tools" "platforms;android-37" || true
+          echo "--- установленные платформы ---"
+          "$SDKMANAGER" --list_installed | sed -n '1,40p' || true
+
+      - name: Cache Gradle distribution, runtime AAR and Gradle home
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.LAMPA_TOOLS }}
+            .cache/runtime
+            ~/.gradle
+          key: lampa-app-${{ runner.os }}-${{ hashFiles('dependencies/runtime.json', 'gradle.properties', 'build.gradle') }}
+          restore-keys: |
+            lampa-app-${{ runner.os }}-
+
       - name: Build APK using the saved runtime
         run: |
           mkdir -p artifacts
           bash scripts/build-app.sh 2>&1 | tee artifacts/app-build.log
+
+      - name: Report build environment
+        if: always()
+        run: |
+          {
+            echo "runner: $RUNNER_NAME ($RUNNER_OS)"
+            echo "java: $(java -version 2>&1 | head -1)"
+            echo "node: $(node --version 2>/dev/null || echo 'нет')"
+            echo "ANDROID_HOME: $ANDROID_HOME"
+            echo "LAMPA_TOOLS: $LAMPA_TOOLS"
+            echo "revision: $(git rev-parse HEAD)"
+            echo "runtime: $(python3 -c 'import json;d=json.load(open("dependencies/runtime.json"));print(d["release"], d["sha256"], d["abi"])' 2>/dev/null || echo 'нет')"
+          } | tee artifacts/runner-info.txt
+
       - name: Upload browser APK
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
