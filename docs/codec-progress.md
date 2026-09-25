@@ -34,5 +34,9 @@ VPS resources. FFmpeg decoding must not depend on Android Dolby MediaCodec.
   engine build. This saves a second Chromium compilation before the first APK.
 - Ruling: disable passthrough in this variant so ordinary PCM output is used.
   Consequence: this APK does not deliver an encoded Dolby stream to a receiver.
+- Native build found stale upstream C API hashes (13300 and 15200) while
+  regenerating Chromium 152 wrappers. Regenerate the custom fork's API metadata
+  alongside its native library. The AAR is not a drop-in desktop CEF binary;
+  all generated changes are retained in the build artifacts.
 - Platform capability, successful media playback, and decoded PCM evidence are
   distinct results. MIME acceptance alone is never reported as playback success.

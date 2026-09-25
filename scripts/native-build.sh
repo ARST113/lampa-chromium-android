@@ -23,7 +23,10 @@ available=$(df -PB1 . | awk 'NR==2 {print $4}')
 (( available > 70 * 1024 * 1024 * 1024 )) || { echo 'Need at least 70 GiB free before building'; exit 1; }
 # The upstream wrapper enables Android-conditional patches and fails on rejection.
 python3 cef/cefrium_sdk/apply-patches.py 2>&1 | tee "$artifact/patches.log"
-(cd cef && python3 tools/version_manager.py -u --fast-check) 2>&1 | tee "$artifact/version.log"
+# The Android fork ships stale generated C API metadata (including a Chromium
+# 150 VERSION.stamp). Rebuild wrappers and hashes together for this custom AAR;
+# it is not distributed as a binary-compatible desktop CEF replacement.
+(cd cef && python3 tools/version_manager.py --check --force-update) 2>&1 | tee "$artifact/version.log"
 bash "$repo/scripts/native-ffmpeg.sh"
 # Patcher may preserve timestamps. Touch all modified tracked source files.
 python3 - <<'PY'
