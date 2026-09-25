@@ -1,7 +1,7 @@
 plugins { id 'com.android.application'; id 'com.cefrium' }
 android {
     namespace 'dev.lampa.cefrium'
-    compileSdk 35
+    compileSdk 37
     defaultConfig {
         applicationId 'dev.lampa.cefrium.probe'
         minSdk 29

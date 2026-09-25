@@ -22,8 +22,8 @@ Pinned inputs:
 | Cefrium SDK and Gradle plugin | 0.9.2, the official Codeberg registry |
 | Bundled Chromium | 152.0.7977.82 (Cefrium release) |
 | Lampa frontend | 40743ea5dd962b01706f6f909d5bef1bdf710474 |
-| Gradle | 8.9, SHA256 checked |
-| AGP | 8.7.3 |
+| Gradle | 9.7.1, SHA256 checked |
+| AGP | 9.4.0 (matches upstream test harness) |
 | Minimum Android | 10 / API 29 |
 | Emulator | Android 15 / API 35, x86_64, KVM |
 
