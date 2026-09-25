@@ -9,7 +9,7 @@ mkdir -p "$artifact"
 exec 9>"$base/.lock"
 flock -n 9 || { echo 'Another native operation owns this checkout'; exit 1; }
 cmp "$repo/dependencies/native-engine.json" "$base/.synced"
-export PATH="$base/depot_tools:$PATH"
+export PATH="$base/chromium/src/buildtools/linux64:$base/chromium/src/third_party/ninja:$base/depot_tools:$PATH"
 export DEPOT_TOOLS_UPDATE=0 DEPOT_TOOLS_METRICS=0
 cd "$base/chromium/src"
 python3 - "$repo/dependencies/native-engine.json" "$base" <<'PY'

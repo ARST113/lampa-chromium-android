@@ -6,7 +6,7 @@ src=/build/lampa-ci/native-152/chromium/src
 artifact="$repo/artifacts/ffmpeg"
 mkdir -p "$artifact"
 cd "$src"
-export PATH="$src/third_party/llvm-build/Release+Asserts/bin:/build/lampa-ci/native-152/depot_tools:$PATH"
+export PATH="$src/third_party/llvm-build/Release+Asserts/bin:$src/buildtools/linux64:$src/third_party/ninja:/build/lampa-ci/native-152/depot_tools:$PATH"
 for patch in "$repo"/native/*.patch; do
   if git apply --reverse --check "$patch" 2>/dev/null; then
     echo "Already applied: $(basename "$patch")"
