@@ -18,9 +18,12 @@ VPS resources. FFmpeg decoding must not depend on Android Dolby MediaCodec.
 - Original baseline detected no platform AC3/EAC3 decoders on API 35. Its
   diagnostic button was not activated by DPAD_CENTER; touch activation was
   implemented. The repeat run was cancelled at the user's explicit request.
-- Native source fetch is in progress. Software FFmpeg patch and build/app
-  integration are prepared; first native build is ARM64 only.
-- Native build, regression input tests, media results: pending.
+- Native ARM64 build and APK packaging succeeded in run 36129657778 at
+  bc35f94a418cc7c200943d3e2595dc671f00bf45 on 2026-09-25. AAR SHA256:
+  1762fad19e262c76d75de3bed19472d1c6fa9479138d3dae12c3faa3824b3863.
+- The standalone AAR is archived in the matching GitHub Release; an app-only
+  workflow reuses the pinned AAR without compiling Chromium or FFmpeg.
+- Post-change input regression and media playback measurements remain pending.
 - HDMI passthrough is outside this software-to-PCM variant.
 - FFmpeg ARM64 and x64 decoder compilation succeeded. GN generation rejected
   the optional GPL AArch64 AC3 DSP implementation. Gate its objects and init

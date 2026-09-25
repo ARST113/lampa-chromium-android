@@ -1,12 +1,18 @@
 # Lampa on Cefrium: Android input probe
 
+**Готовый AC3/EAC3-движок и быстрая пересборка APK:**
+[инструкция](docs/rebuild-app.md) ·
+[скачать отдельный рантайм AAR](https://github.com/ARST113/lampa-chromium-android/releases/tag/cefrium-0.9.2-chromium-152-ac3-arm64-r8).
+В Actions используйте **Build APK with saved AC3/EAC3 runtime** для пересборки
+приложения с готовым движком. Chromium при этом заново не собирается.
+
 First milestone: run the real Lampa frontend in the ready-made **Cefrium 0.9.2**
 SDK and verify touch + remote control on Android. GitHub Actions orchestrates the
 build and tests. A dedicated Ubuntu VPS supplies compute, disk and KVM.
 
 This repository currently hosts a separate test APK (`dev.lampa.cefrium.probe`),
 not a replacement for `ARST113/LAMPA` or its native AndroidJS/services. Native
-codec changes are the next milestone after the input tests pass.
+codec changes are available in the separately built runtime described above.
 
 **Validated:** [run 36123360232](https://github.com/ARST113/lampa-chromium-android/actions/runs/36123360232)
 passed all four input scenarios on Android 10 and 15. See the
@@ -84,5 +90,6 @@ See [the agreed sequence](docs/plan.md).
 - [Cefrium release and SDK docs](https://cefrium.com/releases/)
 - [Lampa source and license](https://github.com/ARST113/lampa-source/tree/40743ea5dd962b01706f6f909d5bef1bdf710474)
 
-The APK includes Lampa's license in its bundled assets. Cefrium is consumed as an
-unmodified Maven SDK; this repository does not relicense upstream components.
+The APK includes Lampa's license in its bundled assets. The input probe uses the
+unmodified Maven SDK; the saved AC3/EAC3 runtime includes this repository's
+documented native patches. This repository does not relicense upstream components.

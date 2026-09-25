@@ -1,0 +1,53 @@
+name: Build APK with saved AC3/EAC3 runtime
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/app.yml
+      - app/**
+      - build-logic/**
+      - build.gradle
+      - settings.gradle
+      - gradle.properties
+      - dependencies/runtime.json
+      - dependencies/lampa-package-lock.json
+      - scripts/build-app.sh
+      - scripts/fetch-runtime.py
+      - scripts/build-frontend.sh
+      - scripts/bundle-lampa.cjs
+      - scripts/generate-media.sh
+      - scripts/gradle.sh
+permissions:
+  contents: read
+concurrency:
+  group: lampa-vps
+  cancel-in-progress: false
+jobs:
+  app:
+    if: github.repository == 'ARST113/lampa-chromium-android' && github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, Linux, X64, lampa]
+    timeout-minutes: 60
+    env:
+      JAVA_HOME: /usr/lib/jvm/java-25-openjdk-amd64
+      ANDROID_HOME: /opt/lampa-ci/android-sdk
+      ANDROID_SDK_ROOT: /opt/lampa-ci/android-sdk
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Build APK using the saved runtime
+        run: |
+          mkdir -p artifacts
+          bash scripts/build-app.sh 2>&1 | tee artifacts/app-build.log
+      - name: Upload browser APK
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: lampa-app-arm64-${{ github.run_number }}
+          path: artifacts/
+          retention-days: 30
+          if-no-files-found: error
