@@ -1,0 +1,20 @@
+# Common options from Cefrium v0.9.2, with built-in software Dolby decoding.
+target_os = "android"
+is_official_build = true
+is_debug = false
+is_component_build = false
+clang_use_chrome_plugins = false
+enable_nacl = false
+android_static_analysis = "off"
+symbol_level = 0
+blink_symbol_level = 0
+is_clang = true
+enable_jni_multiplexing = false
+use_hashed_jni_names = false
+chrome_pgo_phase = 0
+v8_use_external_startup_data = false
+proprietary_codecs = true
+ffmpeg_branding = "Chrome"
+enable_platform_ac3_eac3_audio = true
+# Decode to PCM on all devices instead of requiring a bitstream-capable output.
+enable_passthrough_audio_codecs = false

@@ -4,9 +4,9 @@ Plan: docs/codec-next.md. Base: 08422b4. Branch: codecs/ac3-eac3.
 
 ## Scope
 
-First deliverable: platform AC3/EAC3 in the existing Cefrium/Lampa host on
-Android 10+, built by GitHub Actions using VPS resources. Software FFmpeg
-decoding is a separate follow-up. Device model/output information is pending.
+Updated by the user: build software AC3/EAC3 immediately, without spending time
+on preliminary emulator checks. Target Android 10+ ARM64, GitHub Actions using
+VPS resources. FFmpeg decoding must not depend on Android Dolby MediaCodec.
 
 ## Progress
 
@@ -15,9 +15,13 @@ decoding is a separate follow-up. Device model/output information is pending.
   Upstream Cefrium codecs build does not set enable_platform_ac3_eac3_audio.
 - VPS preflight: 16 CPUs, 31 GiB RAM, 350 GiB available. Native checkout will
   live outside the Actions checkout, with immutable source pins and no reset.
-- Baseline playback tests: pending. Build/app integration: pending.
+- Original baseline detected no platform AC3/EAC3 decoders on API 35. Its
+  diagnostic button was not activated by DPAD_CENTER; touch activation was
+  implemented. The repeat run was cancelled at the user's explicit request.
+- Native source fetch is in progress. Software FFmpeg patch and build/app
+  integration are prepared; first native build is ARM64 only.
 - Native build, regression input tests, media results: pending.
-- Actual HDMI/device validation remains dependent on real hardware.
+- HDMI passthrough is outside this software-to-PCM variant.
 
 ## Decisions
 
@@ -25,6 +29,10 @@ decoding is a separate follow-up. Device model/output information is pending.
   Some upstream build-guide examples and VERSION.stamp still name Chromium 150;
   use CHROMIUM_BUILD_COMPATIBILITY.txt and verify generated version metadata.
 - Shallow source checkout on VPS only; do not download Chromium onto the PC.
-- Build arm64 and x64 sequentially, bounding compiler concurrency for 32 GiB RAM.
+- Ruling (user instruction): skip preliminary emulator runs, build ARM64 first.
+  Generate both FFmpeg architecture configs together, but defer a full x64
+  engine build. This saves a second Chromium compilation before the first APK.
+- Ruling: disable passthrough in this variant so ordinary PCM output is used.
+  Consequence: this APK does not deliver an encoded Dolby stream to a receiver.
 - Platform capability, successful media playback, and decoded PCM evidence are
   distinct results. MIME acceptance alone is never reported as playback success.

@@ -55,12 +55,19 @@ adb shell wm density 160
 adb shell wm size 1280x720
 adb shell getprop > "$evidence_dir/android-properties.txt"
 adb logcat -c
-bash scripts/gradle.sh :app:connectedDebugAndroidTest -Pabi=x86_64 --stacktrace "$@"
+test_args=()
+case ${LAMPA_TEST_SUITE:-input} in
+  input) test_args+=(-Pandroid.testInstrumentationRunnerArguments.class=dev.lampa.cefrium.LampaInputTest) ;;
+  media) test_args+=(-Pandroid.testInstrumentationRunnerArguments.class=dev.lampa.cefrium.CodecPlaybackTest) ;;
+  all) ;;
+  *) echo 'Unknown test suite'; exit 1 ;;
+esac
+bash scripts/gradle.sh :app:connectedDebugAndroidTest -Pabi=x86_64 --stacktrace "${test_args[@]}" "$@"
 adb pull /sdcard/Download/lampa-probe-evidence "$evidence_dir/evidence"
-if [[ ${LAMPA_TEST_SUITE:-input} == media ]]; then
+if [[ ${LAMPA_TEST_SUITE:-input} != input ]]; then
   [[ -s "$evidence_dir/evidence/codec-report.json" ]] || { echo 'Missing codec evidence'; exit 1; }
-  exit 0
 fi
+[[ ${LAMPA_TEST_SUITE:-input} == media ]] && exit 0
 for mode in tv touch; do
   for name in report.json 01-lampa.png 02-touch-settings.png 03-dpad-focus.png 04-ok-opened.png 05-horizontal-focus.png 06-touch-after-remote.png; do
     [[ -s "$evidence_dir/evidence/$mode-$name" ]] || { echo "Missing evidence: $mode-$name"; exit 1; }

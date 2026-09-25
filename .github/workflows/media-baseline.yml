@@ -1,13 +1,6 @@
 name: Media baseline on the published Cefrium SDK
 on:
   workflow_dispatch:
-  push:
-    branches: [codecs/ac3-eac3]
-    paths:
-      - .github/workflows/media-baseline.yml
-      - app/src/androidTest/java/dev/lampa/cefrium/CodecPlaybackTest.java
-      - app/src/main/assets/codecs/**
-      - scripts/generate-media.sh
 permissions:
   contents: read
 concurrency:

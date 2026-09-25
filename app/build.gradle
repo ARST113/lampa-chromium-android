@@ -1,4 +1,9 @@
 plugins { id 'com.android.application'; id 'com.cefrium' }
+def customCefrium = project.findProperty('cefriumAar')
+def customChecksum = project.findProperty('cefriumSha256')
+if (customCefrium && !(customChecksum ==~ /[0-9a-f]{64}/)) {
+    throw new GradleException('A custom Cefrium AAR requires -PcefriumSha256=<64 lowercase hex digits>')
+}
 android {
     namespace 'dev.lampa.cefrium'
     compileSdk 37
@@ -6,8 +11,8 @@ android {
         applicationId 'dev.lampa.cefrium.probe'
         minSdk 29
         targetSdk 34
-        versionCode 1
-        versionName '0.1-cefrium-0.9.2'
+        versionCode customCefrium ? 2 : 1
+        versionName customCefrium ? '0.2-software-ac3-cefrium-0.9.2' : '0.1-cefrium-0.9.2'
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         ndk { abiFilters(project.findProperty('abi') ?: 'x86_64') }
     }
@@ -17,7 +22,8 @@ android {
 }
 configurations.configureEach { exclude group: 'com.google.guava', module: 'listenablefuture' }
 dependencies {
-    implementation 'com.cefrium:cefrium-sdk:0.9.2'
+    if (customCefrium) implementation files(customCefrium)
+    else implementation 'com.cefrium:cefrium-sdk:0.9.2'
     implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'androidx.mediarouter:mediarouter:1.7.0'
     implementation 'androidx.core:core:1.16.0'
@@ -30,20 +36,22 @@ dependencies {
 tasks.register('verifyCefriumSdk') {
     doLast {
         def expected = new groovy.json.JsonSlurper().parse(rootProject.file('dependencies/cefrium.json'))
-        def sdk = configurations.debugRuntimeClasspath.resolvedConfiguration.resolvedArtifacts.find {
+        def sdk = customCefrium ? null : configurations.debugRuntimeClasspath.resolvedConfiguration.resolvedArtifacts.find {
             it.moduleVersion.id.group == 'com.cefrium' && it.name == 'cefrium-sdk'
         }
-        if (sdk == null) throw new GradleException('Cefrium SDK artifact is missing')
+        def aarFile = customCefrium ? file(customCefrium) : sdk?.file
+        if (aarFile == null || !aarFile.isFile()) throw new GradleException('Cefrium SDK artifact is missing')
         def digest = java.security.MessageDigest.getInstance('SHA-256')
-        sdk.file.withInputStream { stream ->
+        aarFile.withInputStream { stream ->
             def checked = new java.security.DigestInputStream(stream, digest)
             checked.transferTo(java.io.OutputStream.nullOutputStream())
         }
         def actual = digest.digest().encodeHex().toString()
-        if (sdk.moduleVersion.id.version != expected.version || actual != expected.sdk_sha256) {
+        def expectedHash = customCefrium ? customChecksum : expected.sdk_sha256
+        if ((!customCefrium && sdk.moduleVersion.id.version != expected.version) || actual != expectedHash) {
             throw new GradleException("Cefrium SDK revision/checksum mismatch: ${actual}")
         }
-        println "Verified Cefrium ${expected.version}: ${actual}"
+        println "Verified Cefrium ${customCefrium ? 'custom' : expected.version}: ${actual}"
     }
 }
 tasks.named('preBuild').configure { dependsOn 'verifyCefriumSdk' }
