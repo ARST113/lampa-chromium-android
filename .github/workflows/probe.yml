@@ -104,10 +104,12 @@ jobs:
 
       - name: Test touch and remote input on Android 15
         if: ${{ !cancelled() && steps.compile.outcome == 'success' }}
+        timeout-minutes: 20
         run: LAMPA_ANDROID_API=35 bash scripts/emulator-test.sh 2>&1 | tee artifacts/input-tests-35.log
 
       - name: Test touch and remote input on Android 10
         if: ${{ !cancelled() && steps.compile.outcome == 'success' }}
+        timeout-minutes: 20
         run: LAMPA_ANDROID_API=29 bash scripts/emulator-test.sh 2>&1 | tee artifacts/input-tests-29.log
 
       - name: Build ARM64 APK for device testing
