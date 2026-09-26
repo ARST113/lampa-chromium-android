@@ -41,7 +41,19 @@ const crypto = require('crypto');
     fs.writeFileSync(path.join(output, 'css', file.replace(/\.scss$/, '.css')), css);
   }
 
-  const html = fs.readFileSync('public/index.html', 'utf8').replace('<script src="app.js"></script>', '<script src="app.js"></script>');
+  const inputBootstrap = `<script>
+(() => {
+  const mode = new URLSearchParams(location.search).get('input');
+  if (mode === 'touch' || mode === 'tv') {
+    localStorage.setItem('navigation_type', mode === 'touch' ? 'touch' : 'controll');
+    localStorage.setItem('is_true_mobile', mode === 'touch' ? 'true' : 'false');
+  }
+})();
+</script>`;
+  const html = fs.readFileSync('public/index.html', 'utf8').replace(
+    '<script src="app.js"></script>',
+    inputBootstrap + '\n    <script src="app.js"></script>'
+  );
   fs.writeFileSync(path.join(output, 'index.html'), html);
   fs.copyFileSync('LICENSE', path.join(output, 'LAMPA-LICENSE.txt'));
 
