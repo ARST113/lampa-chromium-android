@@ -24,15 +24,21 @@ emulator -avd "lampa-probe-$api" -no-window -no-audio -no-boot-anim -no-snapshot
   -camera-back none -camera-front none > "$evidence_dir/emulator.log" 2>&1 &
 emulator_pid=$!
 cleanup() {
-  adb logcat -d > "$evidence_dir/logcat.txt" 2>&1 || true
+  set +e
+  timeout 20s adb logcat -d > "$evidence_dir/logcat.txt" 2>&1
   if [[ ! -d "$evidence_dir/evidence" ]]; then
-    adb pull /sdcard/Download/lampa-probe-evidence "$evidence_dir/evidence" >/dev/null 2>&1 || true
+    timeout 30s adb pull /sdcard/Download/lampa-probe-evidence "$evidence_dir/evidence" >/dev/null 2>&1
   fi
   cp -a app/build/outputs/androidTest-results "$evidence_dir/junit" 2>/dev/null || true
   cp -a app/build/reports/androidTests "$evidence_dir/reports" 2>/dev/null || true
-  adb emu kill >/dev/null 2>&1 || true
-  kill "$emulator_pid" 2>/dev/null || true
-  wait "$emulator_pid" 2>/dev/null || true
+  timeout 15s adb emu kill >/dev/null 2>&1
+  kill -TERM "$emulator_pid" 2>/dev/null || true
+  for _ in $(seq 1 20); do
+    kill -0 "$emulator_pid" 2>/dev/null || break
+    sleep 0.5
+  done
+  kill -KILL "$emulator_pid" 2>/dev/null || true
+  set -e
 }
 trap cleanup EXIT
 timeout 240 adb wait-for-device
