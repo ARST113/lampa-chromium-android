@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.util.Log;
 import com.cefrium.CefriumBrowser;
+import org.chromium.base.CommandLine;
 
 /** Feasibility host for the real Lampa frontend in the unmodified Cefrium SDK. */
 public final class MainActivity extends Activity {
@@ -16,6 +17,14 @@ public final class MainActivity extends Activity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON | WindowManager.LayoutParams.FLAG_FULLSCREEN);
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
             | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN);
+
+        // This embedded Cefrium AAR ships the regular Chromium sandboxed child
+        // services, but not Android 15+/17 native-only child service entries.
+        // Prevent Chromium from selecting NativeOnlySandboxedProcessService,
+        // which would otherwise crash the process with NameNotFoundException.
+        if (!CommandLine.isInitialized()) CommandLine.init(null);
+        CommandLine.getInstance().appendSwitchWithValue("javaless-renderers", "disabled");
+
         browser = CefriumBrowser.createWithSurface(this);
         browser.setOnRenderProcessTerminatedListener((status, error) -> Log.e("LampaProbe", "Renderer terminated: " + status + "/" + error));
         setContentView(browser.getSurfaceContainer());
