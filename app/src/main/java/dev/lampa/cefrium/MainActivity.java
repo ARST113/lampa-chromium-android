@@ -15,9 +15,10 @@ import android.util.Log;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.graphics.drawable.GradientDrawable;
 
 import com.cefrium.CefriumBrowser;
 import org.chromium.base.CommandLine;
@@ -36,7 +37,7 @@ public final class MainActivity extends Activity {
     private static final String PREF_SERVER = "lampa_server";
     private static final String ENGINE_CEFRIUM = "cefrium";
     private static final String ENGINE_SYSTEM = "system";
-    private static final String DEFAULT_SERVER = "http://lampa.mx";
+    private static final String DEFAULT_SERVER = LOCAL_SERVER;
     private static final String LOCAL_SERVER = "local";
 
     CefriumBrowser browser; // package-visible for instrumentation tests
@@ -96,12 +97,7 @@ public final class MainActivity extends Activity {
         // HTMLMediaElement.audioTracks. Chromium 152 keeps AudioVideoTracks behind
         // a Blink runtime feature, so expose it explicitly for the embedded engine.
         CommandLine.getInstance().appendSwitchWithValue("enable-blink-features", "AudioVideoTracks");
-        // The app already supplies its own player UI. Do not let Chromium add the
-        // Android media-cast overlay on top of Lampa's controls.
-        CommandLine.getInstance().appendSwitchWithValue("disable-features", "MediaCastOverlayButton");
-
         browser = CefriumBrowser.createWithSurface(this);
-        browser.setMediaSessionEnabled(false);
         browser.setOnRenderProcessTerminatedListener((status, error) ->
             Log.e("LampaProbe", "Renderer terminated: " + status + "/" + error));
 
@@ -143,21 +139,31 @@ public final class MainActivity extends Activity {
     }
 
     private void addSettingsButton() {
-        Button button = new Button(this);
-        button.setText("⚙");
-        button.setTextSize(20f);
-        button.setAlpha(0.72f);
-        button.setPadding(0, 0, 0, 0);
+        ImageButton button = new ImageButton(this);
+        button.setImageResource(R.drawable.lampa_fab_icon);
+        button.setScaleType(android.widget.ImageView.ScaleType.CENTER_INSIDE);
+        button.setContentDescription("Меню Lampa");
+        button.setPadding(dp(11), dp(11), dp(11), dp(11));
+
+        GradientDrawable background = new GradientDrawable();
+        background.setShape(GradientDrawable.OVAL);
+        background.setColor(Color.rgb(28, 30, 31));
+        button.setBackground(background);
+        button.setElevation(dp(8));
         button.setOnClickListener(v -> showHostSettings());
 
-        int size = (int) (52 * getResources().getDisplayMetrics().density);
-        int margin = (int) (12 * getResources().getDisplayMetrics().density);
+        int size = dp(52);
+        int margin = dp(16);
         FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(size, size);
-        lp.gravity = Gravity.TOP | Gravity.END;
-        lp.topMargin = margin;
+        lp.gravity = Gravity.BOTTOM | Gravity.END;
+        lp.bottomMargin = margin;
         lp.rightMargin = margin;
         root.addView(button, lp);
         button.bringToFront();
+    }
+
+    private int dp(int value) {
+        return Math.round(value * getResources().getDisplayMetrics().density);
     }
 
     private void showHostSettings() {
@@ -168,13 +174,13 @@ public final class MainActivity extends Activity {
             : "Cefrium / Chromium 152 + AC3/EAC3";
 
         String[] items = {
-            "Сервер: " + (LOCAL_SERVER.equalsIgnoreCase(server) ? "Встроенная Lampa" : server),
-            "Браузер: " + engineLabel,
+            "Сменить сервер" + (LOCAL_SERVER.equalsIgnoreCase(server) ? " · встроенная Lampa" : " · " + server),
+            "Сменить движок" + " · " + engineLabel,
             "Перезагрузить страницу"
         };
 
         new AlertDialog.Builder(this)
-            .setTitle("Lampa — приложение")
+            .setTitle("Lampa")
             .setItems(items, (dialog, which) -> {
                 if (which == 0) showServerDialog();
                 else if (which == 1) showEngineDialog();
