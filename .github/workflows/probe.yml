@@ -1,6 +1,13 @@
 name: Lampa on Cefrium — Android input test
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'app/src/androidTest/java/dev/lampa/cefrium/LampaInputTest.java'
+      - 'scripts/emulator-test.sh'
+      - '.github/workflows/probe.yml'
 
 permissions:
   contents: read
