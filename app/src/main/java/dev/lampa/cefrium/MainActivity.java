@@ -37,8 +37,8 @@ public final class MainActivity extends Activity {
     private static final String PREF_SERVER = "lampa_server";
     private static final String ENGINE_CEFRIUM = "cefrium";
     private static final String ENGINE_SYSTEM = "system";
-    private static final String DEFAULT_SERVER = LOCAL_SERVER;
     private static final String LOCAL_SERVER = "local";
+    private static final String DEFAULT_SERVER = LOCAL_SERVER;
 
     CefriumBrowser browser; // package-visible for instrumentation tests
     private WebView systemWebView;
