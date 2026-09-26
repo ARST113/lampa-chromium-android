@@ -96,8 +96,12 @@ public final class MainActivity extends Activity {
         // HTMLMediaElement.audioTracks. Chromium 152 keeps AudioVideoTracks behind
         // a Blink runtime feature, so expose it explicitly for the embedded engine.
         CommandLine.getInstance().appendSwitchWithValue("enable-blink-features", "AudioVideoTracks");
+        // The app already supplies its own player UI. Do not let Chromium add the
+        // Android media-cast overlay on top of Lampa's controls.
+        CommandLine.getInstance().appendSwitchWithValue("disable-features", "MediaCastOverlayButton");
 
         browser = CefriumBrowser.createWithSurface(this);
+        browser.setMediaSessionEnabled(false);
         browser.setOnRenderProcessTerminatedListener((status, error) ->
             Log.e("LampaProbe", "Renderer terminated: " + status + "/" + error));
 
