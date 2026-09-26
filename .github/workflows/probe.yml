@@ -7,6 +7,7 @@ on:
     paths:
       - 'app/src/androidTest/java/dev/lampa/cefrium/LampaInputTest.java'
       - 'scripts/emulator-test.sh'
+      - 'scripts/bundle-lampa.cjs'
       - '.github/workflows/probe.yml'
 
 permissions:
