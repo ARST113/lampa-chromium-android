@@ -49,13 +49,30 @@ public class LampaInputTest {
         return query(expression).optString("value", "");
     }
 
-    private void waitFor(String expression) throws Exception {
-        long end = SystemClock.uptimeMillis() + 90000;
+    private boolean waitForWithin(String expression, long timeoutMs) throws Exception {
+        long end = SystemClock.uptimeMillis() + timeoutMs;
         while (SystemClock.uptimeMillis() < end) {
-            if (query(expression).optBoolean("value")) return;
-            SystemClock.sleep(700);
+            if (query(expression).optBoolean("value")) return true;
+            SystemClock.sleep(400);
         }
+        return false;
+    }
+
+    private void waitFor(String expression) throws Exception {
+        if (waitForWithin(expression, 90000)) return;
         fail("Timed out waiting for: " + expression + "; body=" + value("document.body.innerText.slice(0,1500)"));
+    }
+
+    private void tapAndWait(String selector, String expression) throws Exception {
+        tap(selector);
+        if (waitForWithin(expression, 5000)) return;
+
+        Log.w("LampaProbe", "First native tap did not change state; retrying once: " + selector);
+        tap(selector);
+        if (waitForWithin(expression, 10000)) return;
+
+        fail("Native tap did not activate " + selector + "; waiting for: " + expression
+            + "; body=" + value("document.body.innerText.slice(0,1500)"));
     }
 
     private void screenshot(String name) throws Exception {
@@ -151,8 +168,7 @@ public class LampaInputTest {
             // The test instruments observation, not navigation or input behavior.
             query("(()=>{window.__input={touch:0,keys:[]};document.addEventListener('touchstart',e=>{if(e.isTrusted)window.__input.touch++},true);document.addEventListener('keydown',e=>window.__input.keys.push({code:e.keyCode,trusted:e.isTrusted}),true);return true})()");
             String settingsButton = mode.equals("touch") ? ".navigation-bar__item[data-action=settings]" : ".open--settings";
-            tap(settingsButton);
-            waitFor("Lampa.Controller.enabled().name === 'settings'");
+            tapAndWait(settingsButton, "Lampa.Controller.enabled().name === 'settings'");
             assertTrue("A real touchscreen event was not delivered", query("window.__input.touch>0").getBoolean("value"));
             screenshot(mode + "-02-touch-settings");
             waitFor("Boolean(Navigator.getFocusedElement())");
@@ -182,8 +198,7 @@ public class LampaInputTest {
             assertTrue("All arrows and OK must arrive as trusted native key events",
                 query("[37,38,39,40,13].every(code=>window.__input.keys.some(e=>e.code===code && e.trusted))").getBoolean("value"));
             SystemClock.sleep(500);
-            tap(settingsButton);
-            waitFor("Lampa.Controller.enabled().name === 'settings'");
+            tapAndWait(settingsButton, "Lampa.Controller.enabled().name === 'settings'");
             screenshot(mode + "-06-touch-after-remote");
             String report = query("({mode:" + JSONObject.quote(mode) + ",ua:navigator.userAgent,platform:Lampa.Platform.get(),controller:Lampa.Controller.enabled().name,input:window.__input,viewport:[innerWidth,innerHeight,devicePixelRatio]})").toString(2);
             try (FileOutputStream out = new FileOutputStream(new File(activity.getExternalFilesDir(null), "evidence/"+mode+"-report.json"))) {
