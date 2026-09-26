@@ -130,7 +130,7 @@ public class LampaInputTest {
             // A wiped emulator starts Lampa on the language chooser. Complete that real
             // first-run step instead of assuming that "ru" already exists in Storage.
             String appReady = "Boolean(window.appready && window.show_app && document.querySelector('.open--settings'))";
-            String russianLanguage = ".lang__selector-item[data-code=\\\"ru\\\"]";
+            String russianLanguage = ".lang__selector-item[data-code=ru]";
             long welcomeDeadline = SystemClock.uptimeMillis() + 30000;
             while (SystemClock.uptimeMillis() < welcomeDeadline && !query(appReady).optBoolean("value")) {
                 if (query("Boolean(document.querySelector(" + JSONObject.quote(russianLanguage) + "))").optBoolean("value")) {
