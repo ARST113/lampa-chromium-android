@@ -62,7 +62,17 @@ case ${LAMPA_TEST_SUITE:-input} in
   all) ;;
   *) echo 'Unknown test suite'; exit 1 ;;
 esac
-bash scripts/gradle.sh :app:connectedDebugAndroidTest -Pabi=x86_64 --stacktrace "${test_args[@]}" "$@"
+set +e
+timeout --signal=TERM --kill-after=30s 600 \
+  bash scripts/gradle.sh :app:connectedDebugAndroidTest -Pabi=x86_64 --stacktrace "${test_args[@]}" "$@"
+test_status=$?
+set -e
+if [[ $test_status -eq 124 || $test_status -eq 137 ]]; then
+  echo "Android instrumentation exceeded 10 minutes on API $api" >&2
+  adb shell dumpsys activity > "$evidence_dir/activity-timeout.txt" 2>&1 || true
+  adb shell ps -A > "$evidence_dir/processes-timeout.txt" 2>&1 || true
+fi
+[[ $test_status -eq 0 ]] || exit "$test_status"
 adb pull /sdcard/Download/lampa-probe-evidence "$evidence_dir/evidence"
 if [[ ${LAMPA_TEST_SUITE:-input} != input ]]; then
   [[ -s "$evidence_dir/evidence/codec-report.json" ]] || { echo 'Missing codec evidence'; exit 1; }
