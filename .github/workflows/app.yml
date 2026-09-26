@@ -23,7 +23,7 @@ permissions:
 concurrency:
   # Отдельная группа: сборка APK больше не делит очередь с native-* сборками движка.
   group: lampa-app
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   app:
     if: github.repository == 'ARST113/lampa-chromium-android' && github.ref == 'refs/heads/main'
