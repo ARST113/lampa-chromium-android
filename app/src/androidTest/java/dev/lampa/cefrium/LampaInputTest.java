@@ -126,7 +126,22 @@ public class LampaInputTest {
             scenario.onActivity(a -> activity = a);
             try {
             SystemClock.sleep(4000);
-            waitFor("Boolean(window.appready && window.show_app && document.querySelector('.open--settings'))");
+
+            // A wiped emulator starts Lampa on the language chooser. Complete that real
+            // first-run step instead of assuming that "ru" already exists in Storage.
+            String appReady = "Boolean(window.appready && window.show_app && document.querySelector('.open--settings'))";
+            String russianLanguage = ".lang__selector-item[data-code=\\\"ru\\\"]";
+            long welcomeDeadline = SystemClock.uptimeMillis() + 30000;
+            while (SystemClock.uptimeMillis() < welcomeDeadline && !query(appReady).optBoolean("value")) {
+                if (query("Boolean(document.querySelector(" + JSONObject.quote(russianLanguage) + "))").optBoolean("value")) {
+                    Log.i("LampaProbe", "Fresh Lampa profile detected; selecting Russian on the welcome screen");
+                    tap(russianLanguage);
+                    break;
+                }
+                SystemClock.sleep(500);
+            }
+
+            waitFor(appReady);
             assertTrue("Not Chromium 152: " + value("navigator.userAgent"), value("navigator.userAgent").contains("152."));
             assertEquals("Lampa navigation setting was not applied", mode.equals("touch") ? "touch" : "controll", value("Lampa.Storage.field('navigation_type')"));
             assertEquals("Wrong Lampa layout", mode.equals("tv"), query("Lampa.Platform.screen('tv')").getBoolean("value"));
