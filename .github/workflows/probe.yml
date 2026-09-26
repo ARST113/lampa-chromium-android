@@ -20,7 +20,7 @@ defaults:
 concurrency:
   # Отдельная группа: тесты больше не делят очередь с native-* сборками движка.
   group: lampa-probe
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   probe:
