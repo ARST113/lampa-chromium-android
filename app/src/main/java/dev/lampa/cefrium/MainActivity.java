@@ -92,6 +92,10 @@ public final class MainActivity extends Activity {
         // crashes the process before the first page is rendered.
         if (!CommandLine.isInitialized()) CommandLine.init(null);
         CommandLine.getInstance().appendSwitchWithValue("javaless-renderers", "disabled");
+        // Lampa's internal player switches embedded torrent audio streams through
+        // HTMLMediaElement.audioTracks. Chromium 152 keeps AudioVideoTracks behind
+        // a Blink runtime feature, so expose it explicitly for the embedded engine.
+        CommandLine.getInstance().appendSwitchWithValue("enable-blink-features", "AudioVideoTracks");
 
         browser = CefriumBrowser.createWithSurface(this);
         browser.setOnRenderProcessTerminatedListener((status, error) ->
