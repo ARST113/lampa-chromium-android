@@ -160,6 +160,8 @@ public class LampaInputTest {
 
             waitFor(appReady);
             assertTrue("Not Chromium 152: " + value("navigator.userAgent"), value("navigator.userAgent").contains("152."));
+            assertTrue("Chromium audioTracks API is disabled; Lampa cannot switch embedded torrent audio tracks",
+                query("Boolean('audioTracks' in HTMLMediaElement.prototype)").getBoolean("value"));
             assertEquals("Lampa navigation setting was not applied", mode.equals("touch") ? "touch" : "controll", value("Lampa.Storage.field('navigation_type')"));
             assertEquals("Wrong Lampa layout", mode.equals("tv"), query("Lampa.Platform.screen('tv')").getBoolean("value"));
             assertEquals("Language must be stored as a scalar string", "ru", value("Lampa.Storage.get('language')"));
